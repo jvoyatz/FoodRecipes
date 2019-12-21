@@ -9,7 +9,6 @@ import java.util.List;
 
 import gr.jvoyatz.foodrecipes.models.Recipe;
 import gr.jvoyatz.foodrecipes.requests.RecipeApiClient;
-import gr.jvoyatz.foodrecipes.requests.responses.Hit;
 
 public class RecipeRepository {
     private static final String TAG = "RecipeRepository";
@@ -17,11 +16,11 @@ public class RecipeRepository {
     private static RecipeRepository instance;
     private RecipeApiClient mRecipeApiClient;
     private String mQuery;
-    private int mFrom, mTo;
+    private int mPageNumber;
     private MutableLiveData<Boolean> mIsQueryExhausted = new MutableLiveData<>();
     //acts as an mediator
     //used when you want to make a change a set of live data before it is returned
-    private MediatorLiveData<List<Hit>> mRecipes = new MediatorLiveData<>();
+    private MediatorLiveData<List<Recipe>> mRecipes = new MediatorLiveData<>();
 
     public static RecipeRepository getInstance(){
         if(instance == null){
@@ -36,7 +35,7 @@ public class RecipeRepository {
         initMediators();
     }
 
-    public LiveData<List<Hit>> getRecipes(){
+    public LiveData<List<Recipe>> getRecipes() {
         //return mRecipeApiClient.getRecipes();
         return mRecipes;
     }
@@ -48,12 +47,12 @@ public class RecipeRepository {
     }
 
     private void initMediators(){
-        final LiveData<List<Hit>> recipeListApiSource = mRecipeApiClient.getRecipes();
+        final LiveData<List<Recipe>> recipeListApiSource = mRecipeApiClient.getRecipes();
 
         //in-between section
-        mRecipes.addSource(recipeListApiSource, new Observer<List<Hit>>() {
+        mRecipes.addSource(recipeListApiSource, new Observer<List<Recipe>>() {
             @Override
-            public void onChanged(List<Hit> hits) {
+            public void onChanged(List<Recipe> hits) {
                 if(hits != null){
                     mRecipes.setValue(hits);
                     doneQuery(hits);
@@ -65,10 +64,10 @@ public class RecipeRepository {
         });
     }
 
-    public void doneQuery(List<Hit> list){
+    private void doneQuery(List<Recipe> list) {
         //Log.d(TAG, "doneQuery: stasrt");
         if(list != null){
-            if(list.size() % 10 != 0){
+            if (list.size() % 30 != 0) {
                 //Log.d(TAG, "doneQuery: % 10 != 0");
                 mIsQueryExhausted.setValue(true);
             }
@@ -81,19 +80,21 @@ public class RecipeRepository {
     public LiveData<Boolean> isQueryExhausted(){
         return mIsQueryExhausted;
     }
-    public void searchRecipesApi(String query, int from , int to){
-        mRecipeApiClient.searchRecipesApi(query, from, to);
-        this.mQuery = query;
-        this.mFrom = from;
-        this.mTo = to == 0? 10: to;
-        mIsQueryExhausted.setValue(false);
-    }
 
+    public void searchRecipesApi(String query, int pageNumber) {
+        if (pageNumber == 0) {
+            pageNumber = 1;
+        }
+
+        this.mQuery = query;
+        mPageNumber = pageNumber;
+        mIsQueryExhausted.setValue(false);
+        mRecipeApiClient.searchRecipesApi(query, pageNumber);
+    }
 
     public void searchNextPage(){
-        searchRecipesApi(mQuery, mTo + 1, mTo + 10);
+        searchRecipesApi(mQuery, mPageNumber + 1);
     }
-
     public void searchRecipeById(String recipeId){
         mRecipeApiClient.searchRecipeById(recipeId);
     }

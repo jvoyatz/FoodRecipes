@@ -1,7 +1,6 @@
 package gr.jvoyatz.foodrecipes;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,12 +17,11 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 
 import gr.jvoyatz.foodrecipes.models.Recipe;
-import gr.jvoyatz.foodrecipes.requests.responses.Hit;
 import gr.jvoyatz.foodrecipes.viewmodels.RecipeViewModel;
 
 public class RecipeActivity extends BaseActivity {
     private static final String TAG = "RecipeActivity";
-    private Hit hit;
+    private Recipe recipe;
 
     //ui
     private AppCompatImageView mRecipeImage;
@@ -46,15 +44,9 @@ public class RecipeActivity extends BaseActivity {
 
         mRecipeViewModel = ViewModelProviders.of(this).get(RecipeViewModel.class);
 
-       // subscribeObservers();
         showProgressBar(true);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                getIncomingIntent();
-            }
-        }, 4000);
-
+        subscribeObservers();
+        getIncomingIntent();
     }
 
     private void subscribeObservers(){
@@ -62,9 +54,8 @@ public class RecipeActivity extends BaseActivity {
             @Override
             public void onChanged(Recipe recipe) {
                 if(recipe != null){
-                    if(recipe.getLabel().equals(mRecipeViewModel.getmRecipeId()) ){
-                        Log.d(TAG, "onChanged: eeeeeeeeeee");
-                        //setRecipeProperties();
+                    if (recipe.getRecipe_id().equals(mRecipeViewModel.getmRecipeId())) {
+                        setRecipeProperties(recipe);
                         mRecipeViewModel.setRetrieveRecipe(true);
                     }
                 }
@@ -76,15 +67,16 @@ public class RecipeActivity extends BaseActivity {
             public void onChanged(Boolean aBoolean) {
                 if(aBoolean && !mRecipeViewModel.didRetrieveRecipe()){
                     Log.d(TAG, "onChanged: eeeeeee...");
+                    displayErrorScreen("Error retrieving data. Check Network Connection");
                 }
             }
         });
     }
     private void getIncomingIntent(){
         if(getIntent().hasExtra("recipe")){
-            hit = getIntent().getParcelableExtra("recipe");
-            setRecipeProperties(hit);
-            //displayErrorScreen("errrsdf");
+            recipe = getIntent().getParcelableExtra("recipe");
+            Log.d(TAG, "getIncomingIntent: " + recipe.getRecipe_id());
+            mRecipeViewModel.searchRecipeById(recipe.getRecipe_id());
         }
     }
 
@@ -114,21 +106,22 @@ public class RecipeActivity extends BaseActivity {
         showParent();
         showProgressBar(false);
     }
-    private void setRecipeProperties(Hit hit){
-        if(hit != null){
+
+    private void setRecipeProperties(Recipe recipe) {
+        if (recipe != null) {
             RequestOptions requestOptions = new RequestOptions().placeholder(R.drawable.ic_launcher_background);
 
             Glide
                 .with(this)
                 .setDefaultRequestOptions(requestOptions)
-                .load(hit.getRecipe().getImgUrl())
+                    .load(recipe.getImage_url())
                 .into(mRecipeImage);
 
-            mRecipeTitle.setText(hit.getRecipe().getLabel());
-            mRecipeRank.setText(Double.toString(hit.getRecipe().getYield()));
+            mRecipeTitle.setText(recipe.getTitle());
+            mRecipeRank.setText(String.format("%s", recipe.getSocial_rank()));
 
             mRecipeIngredientsContainer.removeAllViews();
-            for (String ingredientLine : hit.getRecipe().getIngredientLines()) {
+            for (String ingredientLine : recipe.getIngredients()) {
                 TextView textView = new TextView(this);
                 textView.setText(ingredientLine);
                 textView.setTextSize(15);

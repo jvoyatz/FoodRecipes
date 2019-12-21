@@ -19,7 +19,7 @@ import java.util.List;
 
 import gr.jvoyatz.foodrecipes.adapters.OnRecipeListener;
 import gr.jvoyatz.foodrecipes.adapters.RecipeRecyclerAdapter;
-import gr.jvoyatz.foodrecipes.requests.responses.Hit;
+import gr.jvoyatz.foodrecipes.models.Recipe;
 import gr.jvoyatz.foodrecipes.util.VerticalSpacingItemDecorator;
 import gr.jvoyatz.foodrecipes.viewmodels.RecipeListViewModel;
 
@@ -70,12 +70,12 @@ public class MainActivity extends AppCompatActivity implements OnRecipeListener 
 
     }
     private void subsribeObservers(){
-        mRecipeListViewModel.getRecipes().observe(this, new Observer<List<Hit>>() {
+        mRecipeListViewModel.getRecipes().observe(this, new Observer<List<Recipe>>() {
             @Override
-            public void onChanged(List<Hit> recipes) {
+            public void onChanged(List<Recipe> recipes) {
                 if(recipes != null) {
                     if(mRecipeListViewModel.isViewingRecipes()) {
-                       // Testing.printRecipes(recipes, "recipes test");
+                        //Testing.printRecipes(recipes, "recipes test");
                         mRecipeListViewModel.setIsPerformingQuery(false);
                         mRecipeRecyclerAdapter.setRecipeHits(recipes);
                     }
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements OnRecipeListener 
             @Override
             public boolean onQueryTextSubmit(String query) {
                 mRecipeRecyclerAdapter.displayLoading();
-                mRecipeListViewModel.searchRecipesApi(query, 0, 30);
+                mRecipeListViewModel.searchRecipesApi(query, 1);
                 mSearchView.clearFocus();
                 return false;
             }
@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements OnRecipeListener 
 
         mRecipeRecyclerAdapter.displayLoading();
         mSearchView.clearFocus();
-        mRecipeListViewModel.searchRecipesApi(category, 0, 0);
+        mRecipeListViewModel.searchRecipesApi(category, 1);
     }
 
     private void displaySearchCategories(){

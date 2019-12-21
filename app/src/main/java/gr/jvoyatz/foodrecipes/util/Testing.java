@@ -4,13 +4,13 @@ import android.util.Log;
 
 import java.util.List;
 
-import gr.jvoyatz.foodrecipes.requests.responses.Hit;
+import gr.jvoyatz.foodrecipes.models.Recipe;
 
 public class Testing {
-    public static void printRecipes (List<Hit> hits, String tag){
+    public static void printRecipes(List<Recipe> recipes, String tag) {
         try {
-            for (Hit hit : hits) {
-                Log.d(tag, "printRecipes: " + hit.getRecipe());
+            for (Recipe rec : recipes) {
+                Log.d(tag, "printRecipes: " + rec);
             }
         }catch (Exception e){
             e.printStackTrace();

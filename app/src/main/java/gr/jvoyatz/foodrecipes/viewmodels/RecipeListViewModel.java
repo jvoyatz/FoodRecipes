@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel;
 
 import java.util.List;
 
+import gr.jvoyatz.foodrecipes.models.Recipe;
 import gr.jvoyatz.foodrecipes.repositories.RecipeRepository;
-import gr.jvoyatz.foodrecipes.requests.responses.Hit;
 
 
 /*
@@ -26,14 +26,14 @@ public class RecipeListViewModel extends ViewModel {
         mRecipeRepository = RecipeRepository.getInstance();
     }
 
-    public LiveData<List<Hit>> getRecipes(){
+    public LiveData<List<Recipe>> getRecipes() {
         return mRecipeRepository.getRecipes();
     }
 
-    public void searchRecipesApi(String query, int from , int to){
+    public void searchRecipesApi(String query, int pageNumber) {
         mIsViewingRecipes = true;
         mIsPerformingQuery = true;
-        mRecipeRepository.searchRecipesApi(query, from, to);
+        mRecipeRepository.searchRecipesApi(query, pageNumber);
     }
 
     public void searchNextPage(){
